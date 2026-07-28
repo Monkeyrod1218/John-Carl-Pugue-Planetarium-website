@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earth Adventures &middot; John Carl Pogue Planetarium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<style>
+  :root{
+    --void:#05070f;
+    --night:#0a0f22;
+    --deep:#111935;
+    --panel:#141d3d;
+    --line:#27325c;
+    --star:#eef2ff;
+    --mist:#9aa5cf;
+    --dim:#5d6794;
+    --gold:#f4c15b;
+    --gold-soft:#ffd98a;
+    --cyan:#74dbe8;
+    --rose:#f08fb0;
+    --ember:#ff8a5c;
+    --r:18px;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--void);
+    color:var(--star);
+    font-family:'Spline Sans',sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold);color:var(--void)}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;line-height:1.05;letter-spacing:-.01em}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---------- starfield ---------- */
+  #sky{position:fixed;inset:0;z-index:0;display:block}
+  .scrim{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(120% 80% at 70% -10%, rgba(116,219,232,.08), transparent 55%),
+               radial-gradient(90% 60% at 10% 110%, rgba(244,193,91,.06), transparent 60%)}
+  main,header,footer{position:relative;z-index:2}
+
+  /* ---------- nav ---------- */
+  header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);
+    background:linear-gradient(to bottom, rgba(5,7,15,.85), rgba(5,7,15,.4));
+    border-bottom:1px solid rgba(39,50,92,.6)}
+  nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:center;gap:12px;font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem}
+  .brand-logo{height:38px;width:auto;display:block}
+  .badge{width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:block;
+    filter:drop-shadow(0 0 8px rgba(244,193,91,.45))}
+  .navlinks{display:flex;gap:28px;font-size:.92rem;color:var(--mist)}
+  .navlinks a{position:relative;transition:color .2s}
+  .navlinks a:hover{color:var(--star)}
+  .navlinks a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:var(--gold);transition:width .25s}
+  .navlinks a:hover::after{width:100%}
+  .navitem{position:relative;display:inline-flex;align-items:center}
+  .navcaret{font-size:.7em;opacity:.8;margin-left:3px}
+  .dropmenu{position:absolute;top:100%;left:0;min-width:196px;display:flex;flex-direction:column;padding:8px;background:rgba(9,13,30,.98);border:1px solid var(--line);border-radius:12px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .18s,transform .18s,visibility .18s;box-shadow:0 16px 40px rgba(0,0,0,.55);z-index:60}
+  .navitem:hover .dropmenu,.navitem:focus-within .dropmenu{opacity:1;visibility:visible;transform:translateY(0)}
+  .dropmenu a{white-space:nowrap;padding:9px 12px;border-radius:8px;font-size:.9rem;color:var(--mist)}
+  .dropmenu a::after{display:none!important}
+  .dropmenu a:hover{background:rgba(244,193,91,.14);color:var(--star)}
+  .navcta{padding:9px 18px;border:1px solid var(--gold);border-radius:100px;color:var(--gold);font-size:.85rem;font-weight:500;transition:.25s}
+  .navcta:hover{background:var(--gold);color:var(--void)}
+  @media(max-width:760px){.navlinks{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(80px,14vh,160px) 0 90px;text-align:center}
+  .kicker{font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--cyan);margin-bottom:22px}
+  .hero h1{font-size:clamp(2.8rem,9vw,6.2rem);font-weight:600}
+  .hero h1 em{font-style:italic;color:var(--gold-soft)}
+  .hero p{max-width:600px;margin:26px auto 0;color:var(--mist);font-size:clamp(1rem,2.4vw,1.2rem)}
+  .hero-cta{display:flex;gap:14px;justify-content:center;margin-top:38px;flex-wrap:wrap}
+  .btn{padding:14px 28px;border-radius:100px;font-weight:500;font-size:.95rem;transition:.25s;cursor:pointer;border:1px solid transparent}
+  .btn-gold{background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#241704;box-shadow:0 10px 30px rgba(244,193,91,.3)}
+  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(244,193,91,.45)}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--star)}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- section frame ---------- */
+  section{padding:clamp(64px,10vh,110px) 0}
+  main section.wrap:not(.hero){padding-top:clamp(55px,8.5vh,95px);padding-bottom:clamp(55px,8.5vh,95px)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--gold);opacity:.6}
+  .sec-title{font-size:clamp(2rem,5vw,3.2rem);margin-bottom:14px}
+  .sec-intro{max-width:620px;color:var(--mist);margin-bottom:46px}
+
+  /* ---------- tonight panel ---------- */
+  .tonight{display:grid;grid-template-columns:300px 1fr;gap:36px;align-items:center;
+    background:linear-gradient(160deg,var(--panel),var(--night));border:1px solid var(--line);
+    border-radius:26px;padding:40px;overflow:hidden;position:relative}
+  .tonight::before{content:"";position:absolute;right:-120px;top:-120px;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle,rgba(116,219,232,.12),transparent 70%)}
+  .moonwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  #moonsvg{filter:drop-shadow(0 0 40px rgba(238,242,255,.18))}
+  .moon-name{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--gold-soft)}
+  .moon-illum{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--mist)}
+  .tonight h3{font-size:1.7rem;margin-bottom:8px}
+  .sky-now{color:var(--mist);margin-bottom:22px}
+  .factgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .fact{background:rgba(10,15,34,.6);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .fact .k{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .fact .v{font-family:'Fraunces',serif;font-size:1.35rem;color:var(--star);margin-top:4px}
+  @media(max-width:720px){.tonight{grid-template-columns:1fr;text-align:center}.moonwrap{margin:0 auto}.factgrid{grid-template-columns:1fr}}
+
+  /* ---------- solar system ---------- */
+  .solar-stage{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+  .orrery{position:relative;aspect-ratio:1;width:100%;max-width:560px;margin:0 auto}
+  .orrery svg{width:100%;height:100%;overflow:visible}
+  .orbit{fill:none;stroke:rgba(154,165,207,.18);stroke-width:.4}
+  .planet-dot{cursor:pointer;transition:r .2s, filter .2s}
+  .planet-dot:hover{filter:brightness(1.4) drop-shadow(0 0 8px currentColor)}
+  .planet-dot.active{filter:brightness(1.5) drop-shadow(0 0 14px currentColor)}
+  .sun-core{filter:drop-shadow(0 0 28px rgba(244,193,91,.8))}
+  .planet-label{font-family:'JetBrains Mono',monospace;font-size:3px;fill:var(--mist);pointer-events:none}
+  .info-card{background:linear-gradient(160deg,var(--panel),var(--night));border:1px solid var(--line);border-radius:22px;padding:34px;min-height:340px}
+  .info-card .ptag{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan)}
+  .info-card h3{font-size:2.4rem;margin:6px 0 4px}
+  .info-card .pdesc{color:var(--mist);margin:14px 0 24px}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:rgba(5,7,15,.4)}
+  .stat .sk{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .stat .sv{font-family:'Fraunces',serif;font-size:1.15rem;margin-top:2px}
+  .wow{margin-top:20px;padding:14px 16px;border-left:2px solid var(--gold);background:rgba(244,193,91,.06);border-radius:0 10px 10px 0;font-size:.92rem;color:var(--gold-soft)}
+  .picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+  .picker button{font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--mist);cursor:pointer;transition:.2s}
+  .picker button:hover{border-color:var(--cyan);color:var(--cyan)}
+  .picker button.on{background:var(--gold);border-color:var(--gold);color:var(--void)}
+  @media(max-width:860px){.solar-stage{grid-template-columns:1fr}}
+
+  /* ---------- constellations ---------- */
+  .const-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .const-card{background:linear-gradient(165deg,var(--night),var(--void));border:1px solid var(--line);border-radius:20px;padding:24px;cursor:pointer;transition:.3s;position:relative;overflow:hidden}
+  .const-card:hover{border-color:var(--gold);transform:translateY(-4px)}
+  .const-card svg{width:100%;height:150px;display:block;margin-bottom:16px}
+  .cline{stroke:rgba(116,219,232,.4);stroke-width:.5}
+  .cstar{fill:var(--star)}
+  .const-card:hover .cstar{fill:var(--gold-soft)}
+  .const-card:hover .cline{stroke:rgba(244,193,91,.6)}
+  .const-card h3{font-size:1.4rem}
+  .const-card .latin{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase}
+  .const-card p{color:var(--mist);font-size:.9rem;margin-top:10px}
+  @media(max-width:820px){.const-grid{grid-template-columns:1fr}}
+
+  /* ---------- scale slider ---------- */
+  .scale-box{background:linear-gradient(160deg,var(--panel),var(--night));border:1px solid var(--line);border-radius:24px;padding:40px}
+  .scale-readout{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  #scaleObj{font-family:'Fraunces',serif;font-size:clamp(2rem,6vw,3.6rem);color:var(--gold-soft)}
+  #scaleSize{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:1rem}
+  #scaleDesc{color:var(--mist);min-height:48px;margin:10px 0 26px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--cyan),var(--gold));outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--star);cursor:pointer;box-shadow:0 0 18px rgba(238,242,255,.6);border:3px solid var(--gold)}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--star);cursor:pointer;border:3px solid var(--gold)}
+  .scale-ticks{display:flex;justify-content:space-between;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--dim)}
+
+  /* ---------- visit / schedule ---------- */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .card{background:linear-gradient(165deg,var(--night),var(--void));border:1px solid var(--line);border-radius:20px;padding:30px}
+  .card h3{font-size:1.5rem;margin-bottom:8px}
+  .ph{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.78rem;background:rgba(244,193,91,.07);border:1px dashed var(--line);border-radius:6px;padding:2px 8px;display:inline-block}
+  .sched-row{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(39,50,92,.5);gap:16px}
+  .sched-row:last-child{border:none}
+  .sched-row .when{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--cyan);white-space:nowrap}
+  .sched-row .what b{display:block;font-family:'Fraunces',serif;font-size:1.05rem}
+  .sched-row .what span{color:var(--mist);font-size:.85rem}
+  .pill{font-size:.66rem;font-family:'JetBrains Mono',monospace;padding:3px 9px;border-radius:100px;border:1px solid var(--line);color:var(--mist);align-self:center;white-space:nowrap}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+
+  footer{border-top:1px solid var(--line);padding:60px 0 40px;margin-top:40px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px;margin-bottom:40px}
+  footer h4{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  footer a,footer p{color:var(--mist);font-size:.9rem;display:block;margin-bottom:8px;transition:color .2s}
+  footer a:hover{color:var(--star)}
+  .foot-bottom{border-top:1px solid var(--line);padding-top:24px;color:var(--dim);font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
+  .note{font-size:.74rem;color:var(--dim);font-style:italic;margin-top:6px}
+
+  /* rock classifier */
+  .rk2-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:920px;margin:0 auto 26px}
+  @media(max-width:720px){.rk2-legend{grid-template-columns:1fr}}
+  .rk2-leg{background:rgba(5,7,15,.4);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .rk2-leg h3{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--gold-soft);margin-bottom:6px}
+  .rk2-leg p{color:var(--mist);font-size:.9rem;line-height:1.6}
+  .rk2-step{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+  .rk2-step.two{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .rk-group{margin-bottom:12px}
+  .rk-label{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+  .rk-opts{display:flex;flex-wrap:wrap;gap:7px}
+  .rk-opt{padding:6px 12px;border-radius:100px;border:1px solid var(--line);background:rgba(5,7,15,.4);color:var(--mist);cursor:pointer;font-size:.82rem;font-family:inherit;transition:.15s}
+  .rk-opt:hover:not(:disabled){border-color:var(--cyan);color:var(--star)}
+  .rk-opt.correct{background:#5ad99a;border-color:#5ad99a;color:#062616;font-weight:600}
+  .rk-opt.wrong{border-color:var(--rose);color:var(--rose);background:rgba(240,143,176,.12)}
+  .rk-opt.dim{opacity:.38}
+  .rk-opt:disabled{cursor:default}
+  .rock-box{max-width:920px;margin:0 auto;background:linear-gradient(160deg,var(--panel),var(--night));border:1px solid var(--line);border-radius:24px;padding:clamp(22px,4vw,38px);display:grid;grid-template-columns:minmax(220px,340px) 1fr;gap:clamp(22px,4vw,44px)}
+  @media(max-width:720px){.rock-box{grid-template-columns:1fr}}
+  .rock-stage{text-align:center}
+  #rockArt{width:clamp(200px,70%,280px);aspect-ratio:1/1;margin:0 auto;border-radius:50%;overflow:hidden;border:3px solid var(--gold);background:radial-gradient(circle at 42% 34%,#28324e,#0a0f1e);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 44px rgba(0,0,0,.55);cursor:none}
+  #rockArt img{width:100%;height:100%;object-fit:cover;display:block}
+  .rock-stage{position:relative}
+  .rk-lens{position:absolute;display:none;border-radius:50%;pointer-events:none;z-index:30;background-repeat:no-repeat;background-color:#0a0f1e;box-shadow:inset 0 0 26px rgba(0,0,0,.6), 0 0 0 3px #6e5216, 0 0 0 10px #e6c877, 0 0 0 14px #7a5a1c, 0 16px 36px rgba(0,0,0,.65)}
+  .rk-lens::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(120% 90% at 30% 24%, rgba(255,255,255,.4), rgba(255,255,255,0) 44%)}
+  .rk2-name{margin-top:12px;font-family:'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;color:var(--cyan)}
+  .rk2-q{font-family:'Fraunces',serif;font-size:1.4rem;margin-bottom:16px}
+  .rk2-choices{display:flex;flex-direction:column;gap:10px}
+  .rk2-choice{padding:13px 18px;border-radius:12px;border:1px solid var(--line);background:rgba(5,7,15,.4);color:var(--star);cursor:pointer;font-size:1rem;font-family:inherit;text-align:left;transition:.15s}
+  .rk2-choice:hover:not(:disabled){border-color:var(--cyan)}
+  .rk2-choice.correct{background:#5ad99a;border-color:#5ad99a;color:#062616;font-weight:600}
+  .rk2-choice.wrong{background:rgba(240,143,176,.14);border-color:var(--rose);color:var(--rose)}
+  .rk2-choice:disabled{cursor:default}
+  .rk2-result{margin-top:16px;min-height:3em;line-height:1.65;color:var(--star)}
+  .rk2-result.ok{color:#a8f0c8}
+  .rk2-result.no{color:var(--rose)}
+  .rk2-actions{margin-top:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .rk2-actions #rockScore{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--mist)}
+
+  /* glacier activity */
+  .glac-stage{position:relative;max-width:760px;margin:0 auto;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#eaf6fc;box-shadow:0 18px 46px rgba(0,0,0,.45)}
+  .glac-stage svg{display:block;width:100%;height:auto}
+  #ice{transform-box:fill-box;transform-origin:0 50%;transition:transform 3.2s ease}
+  #snow{opacity:0;transform-box:fill-box}
+  #sun{opacity:0;transition:opacity 1.6s ease}
+  #melt{opacity:0;transition:opacity 1s ease 1.3s}
+  #lblSnow{opacity:0;transition:opacity .7s ease}
+  #lblMelt{opacity:0;transition:opacity 1s ease 1.4s}
+  #moraine{opacity:0;transition:opacity 1s ease 1.5s}
+  #lblValley{opacity:0;transition:opacity 1s ease 1.5s}
+  @keyframes glacSnow{0%{transform:translateY(-18px)}100%{transform:translateY(52px)}}
+  .glac-stage.st-start #ice{transform:scaleX(.5)}
+  .glac-stage.st-start #snow{opacity:.8;animation:glacSnow 4.5s linear infinite}
+  .glac-stage.st-start #lblSnow{opacity:1}
+  .glac-stage.st-adv #ice{transform:scaleX(1)}
+  .glac-stage.st-adv #snow{opacity:1;animation:glacSnow 3s linear infinite}
+  .glac-stage.st-adv #lblSnow{opacity:1}
+  .glac-stage.st-ret #ice{transform:scaleX(.24)}
+  .glac-stage.st-ret #sun{opacity:1}
+  .glac-stage.st-ret #melt{opacity:.9}
+  .glac-stage.st-ret #lblMelt{opacity:1}
+  .glac-stage.st-ret #moraine{opacity:1}
+  .glac-stage.st-ret #lblValley{opacity:1}
+  .glac-pop{position:absolute;max-width:250px;background:#fffdf5;color:#20263a;border:2px solid var(--gold);border-radius:14px;padding:12px 15px;font-size:.98rem;line-height:1.42;box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;transform:translateY(6px);transition:.4s;pointer-events:none;font-family:'Spline Sans',sans-serif;left:3%;top:5%}
+  .glac-stage.st-adv .glac-pop.ero{opacity:1;transform:translateY(0)}
+  .glac-stage.st-ret .glac-pop.melt{opacity:1;transform:translateY(0)}
+  .glac-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+  .glac-btn{padding:14px 26px;border-radius:100px;border:1px solid var(--line);background:rgba(5,7,15,.4);color:var(--star);font-size:1.05rem;font-family:inherit;cursor:pointer;transition:.2s}
+  .glac-btn:hover{transform:translateY(-2px)}
+  .glac-btn.adv{background:linear-gradient(180deg,#c7e6fb,#8fc4e8);color:#0b2233;border-color:#8fc4e8}
+  .glac-btn.ret{background:linear-gradient(180deg,#ffd98a,#f4c15b);color:#241704;border-color:#f4c15b}
+</style>
+<style>
+  .uc-wrap{max-width:900px;margin:0 auto;text-align:center}
+  .uc-card{background:linear-gradient(165deg,var(--night),var(--void));border:1px solid var(--line);border-radius:24px;padding:32px;margin-top:34px}
+  .uc-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.2em;color:var(--gold);border:1px solid var(--gold);border-radius:100px;padding:6px 16px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+<defs>
+<symbol id="pogueSealReal" viewBox="0 0 600 599.999999"><defs><filter x="0%" y="0%" width="100%" height="100%" id="3325222658"><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0" color-interpolation-filters="sRGB"/></filter><filter x="0%" y="0%" width="100%" height="100%" id="d3554b6158"><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.2126 0.7152 0.0722 0 0" color-interpolation-filters="sRGB"/></filter><clipPath id="1bd287a4a4"><path d="M 0 44 L 600 44 L 600 556.578125 L 0 556.578125 Z M 0 44 " clip-rule="nonzero"/></clipPath><mask id="209534b160"><g filter="url(#3325222658)"><g filter="url(#d3554b6158)" transform="matrix(0.917725, 0, 0, 0.91771, -165.056551, 43.576242)"><image x="0" y="0" width="1024" xlink:href="images/209534b160-acc427e6dd.png" height="559" preserveAspectRatio="xMidYMid meet"/></g></g></mask></defs><g clip-path="url(#1bd287a4a4)"><g mask="url(#209534b160)"><g transform="matrix(0.917725, 0, 0, 0.91771, -165.056551, 43.576242)"><image x="0" y="0" width="1024" xlink:href="images/img-9acdcfc131.png" height="559" preserveAspectRatio="xMidYMid meet"/></g></g></g></symbol>
+</defs>
+</svg>
+<canvas id="sky" width="1352" height="760"></canvas>
+<div class="scrim"></div>
+
+<header>
+  <nav class="wrap">
+    <a class="brand" href="index.html#top"><img class="brand-logo" src="images/sky-864964c609.png" alt="Grand Prairie ISD"></a>
+    <div class="navlinks">
+      <span class="navitem"><a href="cosmic-classroom.html">Cosmic Classroom <span class="navcaret">&#9662;</span></a><span class="dropmenu"><a href="kindergarten.html">Kindergarten</a><a href="grade-1.html">1st Grade</a><a href="grade-2.html">2nd Grade</a><a href="grade-3.html">3rd Grade</a><a href="grade-4.html">4th Grade</a><a href="grade-5.html">5th Grade</a><a href="grade-6.html">6th Grade</a><a href="grade-7.html">7th Grade</a><a href="grade-8.html">8th Grade</a><a href="high-school.html">High School</a></span></span>
+      <span class="navitem"><a href="student-zone.html">Adventure Activities <span class="navcaret">&#9662;</span></a><span class="dropmenu"><a href="student-zone.html">Space Adventures</a><a href="#top">Earth Adventures</a></span></span>
+      <span class="navitem"><a href="visit.html">Planetarium Visit <span class="navcaret">&#9662;</span></a><span class="dropmenu"><a href="introduction-video.html">Introduction Video</a></span></span>
+      <span class="navitem"><a href="about-us.html">About Us <span class="navcaret">&#9662;</span></a><span class="dropmenu"><a href="john-carl-pogue.html">John Carl Pogue</a></span></span>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero wrap" style="padding-bottom:20px">
+    <h1 class="reveal in" style="transition-delay:60ms">Earth <em>Adventures</em></h1>
+  </section>
+  <section id="rocks" class="wrap" style="padding-top:0">
+    <h2 class="sec-title reveal">Describe &amp; Classify Rocks</h2>
+    <p class="sec-intro reveal">Geologists start by observing. Hover over the rock to use your cursor as a hand lens and zoom in on the grains. Then describe the rock&rsquo;s grain size, grain shape, color, and texture, and use the clues to decide whether it is Igneous, Sedimentary, or Metamorphic.</p>
+    <div class="rk2-legend reveal">
+      <div class="rk2-leg"><h3>Igneous</h3><p>Forms from cooled magma or lava. Hard, usually with no layers. (Granite, Obsidian)</p></div>
+      <div class="rk2-leg"><h3>Sedimentary</h3><p>Forms from compacted sediment. Often crumbly and layered. (Sandstone, Limestone, Coal)</p></div>
+      <div class="rk2-leg"><h3>Metamorphic</h3><p>Forms when other rocks are changed by heat and pressure. Hard; may or may not have layers. (Slate, Marble)</p></div>
+    </div>
+    <div class="rock-box reveal">
+      <div class="rock-stage">
+        <div id="rockArt"></div>
+        <div class="rk2-name" id="rockName"></div>
+      </div>
+      <div class="rk2-right">
+        <div class="rk2-step">Step 1 &middot; Observe &amp; describe</div>
+        <div id="rockDescribe"></div>
+        <div class="rk2-step two">Step 2 &middot; Classify the&nbsp;rock</div>
+        <div class="rk2-choices" id="rockChoices"></div>
+        <div class="rk2-result" id="rockResult"></div>
+        <div class="rk2-actions"><button type="button" class="btn btn-ghost" id="rockNext">New rock &rarr;</button><span id="rockScore"></span></div>
+      </div>
+    </div>
+  </section>
+  <!-- GLACIER ACTIVITY -->
+  <section id="glaciers" class="wrap">
+    <h2 class="sec-title reveal">Glaciers Shape the Land</h2>
+    <p class="sec-intro reveal">A glacier is a giant, slow river of ice. Press <b>Advance</b> to watch it snow and the glacier creep down the valley. Press <b>Retreat</b> to watch the sun melt it back up the valley. See the rocks it leaves behind!</p>
+    <div class="glac-stage st-start reveal" id="glacStage">
+      <svg viewBox="0 0 760 440" width="760" height="440" aria-label="Glacier flowing down a U-shaped valley">
+        <defs>
+          <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfeaf7"/><stop offset="1" stop-color="#eaf6fc"/></linearGradient>
+          <linearGradient id="gIce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#e4f1fb"/><stop offset="1" stop-color="#b6d6ee"/></linearGradient>
+          <radialGradient id="gSun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3b0"/><stop offset="0.5" stop-color="#ffd451"/><stop offset="1" stop-color="#ffd451" stop-opacity="0"/></radialGradient>
+          <marker id="gAh" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#f4c15b"/></marker><marker id="gAhB" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7fc7e8"/></marker>
+        </defs>
+        <rect x="0" y="0" width="760" height="440" fill="url(#gSky)"/>
+        <g id="sun"><circle cx="670" cy="70" r="50" fill="url(#gSun)"/><circle cx="670" cy="70" r="25" fill="#ffd451"/></g>
+        <g>
+          <polygon points="0,305 55,90 130,200 205,60 285,305" fill="#9aa1ad"/>
+          <polygon points="0,305 55,90 95,150 40,305" fill="#868d99"/>
+          <polygon points="205,60 250,140 160,200 130,200" fill="#868d99"/>
+          <polygon points="55,90 32,124 78,124" fill="#f6faff"/><polygon points="205,60 178,100 232,100" fill="#f6faff"/>
+        </g>
+        <rect x="0" y="300" width="760" height="140" fill="#7d5a37"/>
+        <rect x="0" y="300" width="760" height="8" fill="#6a4a2c"/>
+        <path d="M150,300 C150,340 175,356 250,356 L640,356 C690,356 710,332 712,300 Z" fill="#726d63"/>
+        <g stroke="#585349" stroke-width="2.5" fill="none" opacity="0.5"><path d="M175,320 C250,346 620,346 690,320"/><path d="M200,335 C300,350 590,350 660,335"/></g>
+        <text id="lblValley" x="415" y="392" text-anchor="middle" font-family="'Spline Sans',sans-serif" font-size="19" font-weight="700" paint-order="stroke" stroke="#20263a" stroke-width="4" fill="#fff">U-shaped valley</text>
+        <g id="moraine">
+          <ellipse cx="662" cy="352" rx="46" ry="12" fill="#5f5a4f"/>
+          <circle cx="644" cy="348" r="9" fill="#8a8375"/><circle cx="664" cy="350" r="11" fill="#726c60"/><circle cx="682" cy="347" r="9" fill="#948c7d"/><circle cx="654" cy="352" r="7" fill="#5f5a51"/>
+          <circle cx="470" cy="350" r="6" fill="#847d6f"/><circle cx="520" cy="352" r="7" fill="#6c665a"/><circle cx="560" cy="349" r="6" fill="#7d7669"/><circle cx="430" cy="352" r="5" fill="#8a8375"/>
+          <path d="M628,344 L575,276" stroke="#f4c15b" stroke-width="3" fill="none" marker-end="url(#gAh)"/>
+          <text x="548" y="262" text-anchor="middle" font-family="'Spline Sans',sans-serif" font-size="15" font-weight="700" paint-order="stroke" stroke="#20263a" stroke-width="3.5" fill="#fff">rocks it weathered<tspan x="548" dy="18">and eroded</tspan></text>
+        </g>
+        <path id="melt" d="M300,300 C420,320 560,330 712,318" stroke="#7fc7e8" stroke-width="7" fill="none" stroke-linecap="round"/><g id="lblMelt"><path d="M405,290 L432,314" stroke="#7fc7e8" stroke-width="3" fill="none" marker-end="url(#gAhB)"/><text x="392" y="284" text-anchor="middle" font-family="'Spline Sans',sans-serif" font-size="15" font-weight="700" paint-order="stroke" stroke="#20263a" stroke-width="3.5" fill="#fff">meltwater</text></g>
+        <g id="ice">
+          <path d="M140,300 L140,178 C250,153 430,172 600,240 C650,258 692,278 702,300 Z" fill="url(#gIce)"/>
+          <g stroke="#bcd8ee" stroke-width="2.6" fill="none" opacity="0.8"><path d="M215,168 L222,300"/><path d="M300,166 L308,300"/><path d="M390,176 L398,300"/><path d="M480,196 L488,300"/><path d="M565,226 L572,300"/></g>
+          <path d="M140,178 C250,153 430,172 600,240 C470,215 300,205 150,215 Z" fill="#ffffff" opacity="0.55"/>
+          <circle cx="600" cy="290" r="5" fill="#7a7264"/><circle cx="640" cy="294" r="5" fill="#6c665a"/><circle cx="665" cy="292" r="4" fill="#847d6f"/>
+        </g>
+        <g id="snow" fill="#ffffff"><circle cx="180" cy="120" r="4"/><circle cx="240" cy="100" r="3.5"/><circle cx="300" cy="120" r="4"/><circle cx="360" cy="95" r="3.5"/><circle cx="420" cy="125" r="4"/><circle cx="270" cy="150" r="3"/><circle cx="340" cy="150" r="3"/><circle cx="210" cy="150" r="3"/></g><g id="lblSnow"><path d="M300,62 L300,100" stroke="#f4c15b" stroke-width="3" fill="none" marker-end="url(#gAh)"/><text x="300" y="52" text-anchor="middle" font-family="'Spline Sans',sans-serif" font-size="16" font-weight="700" paint-order="stroke" stroke="#20263a" stroke-width="3.5" fill="#fff">snow</text></g>
+      </svg>
+      <div class="glac-pop ero">As the glacier moves forward, it weathers and erodes the rock.</div>
+      <div class="glac-pop melt">Melting causes the glacier to retreat.</div>
+    </div>
+    <div class="glac-controls">
+      <button type="button" class="glac-btn adv" id="glacAdvance">&#10052; Advance</button>
+      <button type="button" class="glac-btn ret" id="glacRetreat">&#9728; Retreat</button>
+      <button type="button" class="glac-btn" id="glacReset">&#8635; Reset</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="margin-bottom:14px"><svg class="badge" viewBox="0 0 600 599.999999" role="img" aria-label="John Carl Pogue Planetarium seal"><use href="#pogueSealReal"></use></svg> John Carl Pogue Planetarium</div>
+        <p>A learning theater of the Grand Prairie Independent School District, bringing the wonder of astronomy to students and the community.</p>
+        <p class="note">Logistics shown are placeholders for demonstration.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="student-zone.html#tonight">Tonight's Sky</a>
+        <a href="student-zone.html#solar">Solar System</a>
+        <a href="student-zone.html#stars">Constellations</a>
+      </div>
+      <div>
+        <h4>Visit</h4>
+        <a href="index.html#visit">Show Schedule</a>
+        <a href="index.html#visit">Field Trips</a>
+        <p class="ph">[ phone ]</p>
+        <p class="ph">[ address ]</p>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; <span id="yr">2026</span> Grand Prairie ISD &middot; Pogue Planetarium</span>
+      <span class="mono">Ad astra per aspera &#10022;</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ============ STARFIELD ============ */
+(function(){
+  const c=document.getElementById('sky'),x=c.getContext('2d');
+  let w,h,stars=[],shoot=null,t=0;
+  function size(){w=c.width=innerWidth;h=c.height=innerHeight;build();}
+  function build(){
+    stars=[];const n=Math.min(260,Math.floor(w*h/8000));
+    for(let i=0;i<n;i++)stars.push({
+      x:Math.random()*w,y:Math.random()*h,
+      r:Math.random()*1.3+.2,
+      tw:Math.random()*Math.PI*2,sp:Math.random()*.03+.005,
+      hue:Math.random()<.15?'200,225,255':(Math.random()<.3?'255,225,180':'238,242,255')
+    });
+  }
+  function maybeShoot(){
+    if(shoot||Math.random()>.004)return;
+    shoot={x:Math.random()*w*.6,y:Math.random()*h*.3,len:0,a:Math.random()*.5+.2,life:0};
+  }
+  function draw(){
+    t++;x.clearRect(0,0,w,h);
+    for(const s of stars){
+      const a=.4+Math.sin(s.tw+t*s.sp)*.4;
+      x.beginPath();x.arc(s.x,s.y,s.r,0,7);
+      x.fillStyle='rgba('+s.hue+','+a.toFixed(2)+')';x.fill();
+    }
+    maybeShoot();
+    if(shoot){
+      shoot.life++;shoot.len=Math.min(shoot.len+9,140);
+      const ex=shoot.x+Math.cos(shoot.a)*shoot.len, ey=shoot.y+Math.sin(shoot.a)*shoot.len;
+      const g=x.createLinearGradient(shoot.x,shoot.y,ex,ey);
+      g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(255,235,200,.9)');
+      x.strokeStyle=g;x.lineWidth=1.6;x.beginPath();x.moveTo(shoot.x,shoot.y);x.lineTo(ex,ey);x.stroke();
+      shoot.x+=Math.cos(shoot.a)*7;shoot.y+=Math.sin(shoot.a)*7;
+      if(shoot.life>40||ex>w||ey>h)shoot=null;
+    }
+    requestAnimationFrame(draw);
+  }
+  addEventListener('resize',size);size();draw();
+})();
+
+/* ============ DESCRIBE & CLASSIFY ROCKS ============ */
+(function(){
+  const art=document.getElementById('rockArt'); if(!art) return;
+  const nameEl=document.getElementById('rockName');
+  const describeWrap=document.getElementById('rockDescribe');
+  const choiceWrap=document.getElementById('rockChoices');
+  const result=document.getElementById('rockResult');
+  let curPhoto=null;
+  const lens=document.createElement('div'); lens.className='rk-lens'; art.parentElement.appendChild(lens);
+  const LD=170, LR=85, ZOOM=3;
+  function moveLens(e){
+    if(!curPhoto) return;
+    const rect=art.getBoundingClientRect(), w=rect.width;
+    const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+    const dx=cx-w/2, dy=cy-w/2;
+    if(dx*dx+dy*dy > (w/2)*(w/2)){ lens.style.display='none'; return; }
+    lens.style.width=LD+'px'; lens.style.height=LD+'px';
+    lens.style.backgroundImage='url("'+curPhoto+'")';
+    const bg=w*ZOOM; lens.style.backgroundSize=bg+'px '+bg+'px';
+    lens.style.backgroundPosition=(-(cx*ZOOM-LR))+'px '+(-(cy*ZOOM-LR))+'px';
+    lens.style.left=(art.offsetLeft+cx-LR)+'px';
+    lens.style.top=(art.offsetTop+cy-LR)+'px';
+    lens.style.display='block';
+  }
+  art.addEventListener('mousemove',moveLens);
+  art.addEventListener('mouseenter',moveLens);
+  art.addEventListener('mouseleave',function(){lens.style.display='none';});
+  const ROCKS=[
+    {name:'Conglomerate',type:'Sedimentary',sub:'Clastic',forms:'formed when rounded pebbles and sand were cemented together',gsize:'Coarse',gshape:'Rounded',color:'Tan',texture:'Pebbly',draw:{size:'Large',shape:'Rounded'}},
+    {name:'Sandstone',type:'Sedimentary',sub:'Clastic',forms:'formed from compacted grains of sand',gsize:'Medium',gshape:'Rounded',color:'Tan',texture:'Grainy',draw:{size:'Medium',shape:'Flat'}},
+    {name:'Fossiliferous Limestone',type:'Sedimentary',sub:'Organic',forms:'formed from compacted shells and the remains of sea creatures',gsize:'Fine',gshape:'Rounded',color:'Gray',texture:'Fossils',draw:{size:'Large',shape:'Rounded'}},
+    {name:'Gneiss',type:'Metamorphic',sub:'Foliated',forms:'formed under intense heat and pressure into light and dark bands',gsize:'Coarse',gshape:'Interlocking',color:'Speckled',texture:'Layered',draw:{size:'Large',shape:'Rounded'}},
+    {name:'Schist',type:'Metamorphic',sub:'Foliated',forms:'formed under heat and pressure that lined up shiny mica flakes',gsize:'Medium',gshape:'Interlocking',color:'Gray',texture:'Sparkly',draw:{size:'Medium',shape:'Angular'}},
+    {name:'Marble',type:'Metamorphic',sub:'Non-Foliated',forms:'formed when limestone was transformed by heat and pressure',gsize:'Medium',gshape:'Interlocking',color:'White',texture:'Smooth',draw:{size:'Medium',shape:'Angular'}},
+    {name:'Granite',type:'Igneous',sub:'Intrusive',forms:'cooled slowly from magma deep underground',gsize:'Coarse',gshape:'Interlocking',color:'Speckled',texture:'Grainy',draw:{size:'Large',shape:'Angular'}},
+    {name:'Basalt',type:'Igneous',sub:'Extrusive',forms:'cooled quickly from lava at the surface',gsize:'Fine',gshape:'Interlocking',color:'Black',texture:'Holey',draw:{size:'Medium',shape:'Angular'}},
+    {name:'Obsidian',type:'Igneous',sub:'Extrusive',forms:'cooled so fast that it froze into natural glass',gsize:'Fine',gshape:'Angular',color:'Black',texture:'Glassy',draw:{size:'Medium',shape:'Angular'}}
+  ];
+  const PHOTOS={"Conglomerate": "images/img-65a85c80ad.jpg", "Sandstone": "images/img-ff00599f9f.jpg", "Fossiliferous Limestone": "images/img-fffc6513c3.jpg", "Gneiss": "images/img-52277b335b.jpg", "Schist": "images/img-b63529dfb7.jpg", "Marble": "images/img-fd6ce343f1.jpg", "Granite": "images/img-51b7f65a0f.jpg", "Basalt": "images/img-61b136a0f6.jpg", "Obsidian": "images/img-11170a2e6b.jpg"};
+  const TYPES=['Igneous','Sedimentary','Metamorphic'];
+  const DESC=[['Grain size','gsize',['Fine','Medium','Coarse']],['Grain shape','gshape',['Rounded','Angular','Interlocking']],['Color','color',['Gray','Tan','Black','White','Speckled']],['Texture','texture',['Grainy','Pebbly','Layered','Sparkly','Smooth','Glassy','Holey','Fossils']]];
+
+  function drawRock(r){
+    const cx=110,cy=100,sizeF=({Small:0.6,Medium:0.82,Large:1.0})[r.draw.size],R=86*sizeF;
+    const COL=({Gray:'#8b909b',Tan:'#c6a469',Black:'#33353c',White:'#dde1e8',Speckled:'#9a9082'});
+    const base=COL[r.color];
+    let seed=0;(r.name).split('').forEach(function(ch){seed=(seed*31+ch.charCodeAt(0))>>>0;});
+    function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+    function F(x){return (+x).toFixed(1);}
+    let shape;
+    if(r.draw.shape==='Rounded'){shape='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+F(R)+'" ry="'+F(R*0.82)+'"';}
+    else if(r.draw.shape==='Flat'){shape='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+F(R*1.05)+'" ry="'+F(R*0.6)+'"';}
+    else{var n=9,pts=[];for(var i=0;i<n;i++){var a=i/n*Math.PI*2,rr=R*(0.7+rnd()*0.46);pts.push([F(cx+Math.cos(a)*rr),F(cy+Math.sin(a)*rr*0.86)]);}shape='<path d="M'+pts.map(function(p){return p[0]+','+p[1];}).join(' L')+' Z"';}
+    function pt(){return [cx+(rnd()*2-1)*R*0.82, cy+(rnd()*2-1)*R*0.62];}
+    function mark(x,y,rr,sh,fill,rot){x=F(x);y=F(y);rr=+rr.toFixed(2);
+      if(sh==='Rounded')return '<circle cx="'+x+'" cy="'+y+'" r="'+rr+'" fill="'+fill+'"/>';
+      if(sh==='Angular')return '<rect x="'+F(x-rr)+'" y="'+F(y-rr)+'" width="'+F(rr*2)+'" height="'+F(rr*2)+'" fill="'+fill+'" transform="rotate('+rot.toFixed(0)+' '+x+' '+y+')"/>';
+      var q=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+rot*0.02;q.push(F((+x)+Math.cos(a)*rr)+','+F((+y)+Math.sin(a)*rr));}return '<polygon points="'+q.join(' ')+'" fill="'+fill+'"/>';}
+    var tex='';
+    var gs=({Fine:[0.6,1.2,95],Medium:[1.3,2.3,58],Coarse:[2.3,3.8,34]})[r.gsize];
+    if(r.texture==='Grainy'){for(var g=0;g<gs[2];g++){var p=pt();var rr=gs[0]+rnd()*(gs[1]-gs[0]);tex+=mark(p[0],p[1],rr,r.gshape,'rgba(0,0,0,'+(0.14+rnd()*0.22).toFixed(2)+')',rnd()*90);}}
+    else if(r.texture==='Pebbly'){var pcol=['#b9b2a6','#8f9aa0','#cdbfa8','#7c8894','#c9a86a','#ded7c9','#a89e8e','#6f7580'];for(var g=0;g<26;g++){var p=pt();var rx=5+rnd()*11,ry=rx*(0.72+rnd()*0.4),c=pcol[Math.floor(rnd()*pcol.length)];tex+='<ellipse cx="'+F(p[0])+'" cy="'+F(p[1])+'" rx="'+F(rx)+'" ry="'+F(ry)+'" fill="'+c+'"/>'+'<ellipse cx="'+F(p[0]-rx*0.28)+'" cy="'+F(p[1]-ry*0.32)+'" rx="'+F(rx*0.4)+'" ry="'+F(ry*0.34)+'" fill="rgba(255,255,255,.22)"/>'+'<ellipse cx="'+F(p[0])+'" cy="'+F(p[1])+'" rx="'+F(rx)+'" ry="'+F(ry)+'" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="0.8"/>';}}
+    else if(r.texture==='Fossils'){for(var g=0;g<10;g++){var p=pt();var s=4+rnd()*5,rot=(rnd()*60-30);var fx=F(p[0]),fy=F(p[1]);var fan='<g transform="rotate('+rot.toFixed(0)+' '+fx+' '+fy+')"><path d="M'+F(p[0]-s)+','+fy+' A'+F(s)+','+F(s)+' 0 0 1 '+F(p[0]+s)+','+fy+' Z" fill="#e7e1d3" stroke="rgba(0,0,0,.3)" stroke-width="0.7"/>';for(var k=1;k<5;k++){var ax=p[0]-s+2*s*k/5;fan+='<line x1="'+fx+'" y1="'+fy+'" x2="'+F(ax)+'" y2="'+F(p[1]-s*0.15)+'" stroke="rgba(0,0,0,.28)" stroke-width="0.6"/>';}fan+='</g>';tex+=fan;}for(var g=0;g<14;g++){var p=pt();tex+='<circle cx="'+F(p[0])+'" cy="'+F(p[1])+'" r="'+(1+rnd()*1.6).toFixed(1)+'" fill="rgba(255,255,255,.35)"/>';}}
+    else if(r.texture==='Layered'){for(var g=0;g<7;g++){var yy=cy-R*0.64+g*(R*1.28/6);var col=(g%2===0)?'rgba(30,30,30,.5)':'rgba(240,240,245,.4)';tex+='<rect x="'+F(cx-R*1.15)+'" y="'+F(yy)+'" width="'+F(R*2.3)+'" height="'+F(R*0.11)+'" fill="'+col+'"/>';}}
+    else if(r.texture==='Sparkly'){for(var g=0;g<50;g++){var p=pt();var s=2+rnd()*4.5;var sh2=['#d2d6dc','#aeb4bd','#eef1f5','#8b9099'][Math.floor(rnd()*4)];tex+=mark(p[0],p[1],s,'Angular',sh2,rnd()*90);}for(var g=0;g<8;g++){var p=pt();tex+='<circle cx="'+F(p[0])+'" cy="'+F(p[1])+'" r="'+(1+rnd()*1.4).toFixed(1)+'" fill="#ffffff"/>';}}
+    else if(r.texture==='Smooth'){if(r.color==='White'){for(var g=0;g<3;g++){var a=pt(),b=pt(),m1=pt();tex+='<path d="M'+F(a[0])+','+F(a[1])+' Q'+F(m1[0])+','+F(m1[1])+' '+F(b[0])+','+F(b[1])+'" fill="none" stroke="rgba(150,156,168,.5)" stroke-width="'+(1+rnd()*1.5).toFixed(1)+'"/>';}}}
+    else if(r.texture==='Holey'){for(var g=0;g<13;g++){var p=pt();tex+='<circle cx="'+F(p[0])+'" cy="'+F(p[1])+'" r="'+(2+rnd()*4).toFixed(1)+'" fill="rgba(0,0,0,.5)"/>';}}
+    else if(r.texture==='Glassy'){tex+='<polygon points="'+F(cx-R*0.5)+','+F(cy-R*0.7)+' '+F(cx+R*0.2)+','+F(cy-R*0.5)+' '+F(cx-R*0.1)+','+F(cy+R*0.6)+' '+F(cx-R*0.7)+','+F(cy+R*0.3)+'" fill="rgba(255,255,255,.20)"/>';for(var g=0;g<5;g++){var a=pt(),b=pt();tex+='<line x1="'+F(a[0])+'" y1="'+F(a[1])+'" x2="'+F(b[0])+'" y2="'+F(b[1])+'" stroke="rgba(255,255,255,.28)" stroke-width="1"/>';}}
+    if(r.color==='Speckled'){var sc=['#d98c9c','#e8e2d8','#3a3a3a','#b0723f'];var cnt=({Fine:90,Medium:60,Coarse:44})[r.gsize];for(var g=0;g<cnt;g++){var p=pt();var rr=gs[0]+rnd()*(gs[1]-gs[0]);tex+=mark(p[0],p[1],rr,r.gshape,sc[Math.floor(rnd()*sc.length)],rnd()*90);}}
+    return '<svg viewBox="0 0 220 200" width="100%">'+
+      '<defs><clipPath id="rkClip">'+shape+'/></clipPath>'+
+      '<radialGradient id="rkHi" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="rgba(255,255,255,.45)"/><stop offset="55%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs>'+
+      '<ellipse cx="'+cx+'" cy="'+F(cy+R*0.86)+'" rx="'+F(R*0.86)+'" ry="'+F(R*0.14)+'" fill="rgba(0,0,0,.35)"/>'+
+      shape+' fill="'+base+'"/>'+
+      '<g clip-path="url(#rkClip)">'+tex+'<rect x="0" y="0" width="220" height="200" fill="url(#rkHi)"/></g>'+
+      shape+' fill="none" stroke="rgba(0,0,0,.42)" stroke-width="1.5"/></svg>';
+  }
+
+  let cur, answered, solved;
+  function newRock(){
+    cur=ROCKS[Math.floor(Math.random()*ROCKS.length)];
+    answered=false; solved={gsize:false,gshape:false,color:false,texture:false};
+    curPhoto=PHOTOS[cur.name];
+    art.innerHTML='<img class="rockphoto" src="'+curPhoto+'" alt="'+cur.name+'">';
+    nameEl.textContent=cur.name;
+    result.textContent=''; result.className='rk2-result';
+    describeWrap.innerHTML=DESC.map(function(d){return '<div class="rk-group" data-key="'+d[1]+'"><div class="rk-label">'+d[0]+'</div><div class="rk-opts">'+d[2].map(function(v){return '<button type="button" class="rk-opt" data-v="'+v+'">'+v+'</button>';}).join('')+'</div></div>';}).join('');
+    choiceWrap.innerHTML=TYPES.map(function(t){return '<button type="button" class="rk2-choice" data-t="'+t+'">'+t+'</button>';}).join('');
+  }
+  describeWrap.addEventListener('click',function(e){
+    const b=e.target.closest('.rk-opt'); if(!b) return;
+    const grp=b.closest('.rk-group'), key=grp.dataset.key;
+    if(solved[key]) return;
+    if(b.dataset.v===cur[key]){b.classList.add('correct');solved[key]=true;grp.querySelectorAll('.rk-opt').forEach(function(x){x.disabled=true;if(x!==b)x.classList.add('dim');});}
+    else{b.classList.add('wrong');setTimeout(function(){b.classList.remove('wrong');},650);}
+  });
+  choiceWrap.addEventListener('click',function(e){
+    const b=e.target.closest('.rk2-choice'); if(!b||answered) return;
+    answered=true;const pick=b.dataset.t,correct=cur.type;
+    choiceWrap.querySelectorAll('.rk2-choice').forEach(function(x){x.disabled=true;if(x.dataset.t===correct)x.classList.add('correct');else if(x.dataset.t===pick)x.classList.add('wrong');});
+    var a1=(correct==='Igneous')?'an':'a';
+    if(pick===correct){result.className='rk2-result ok';result.textContent='Correct! '+cur.name+' is '+a1+' '+correct+' rock ('+cur.sub+'). It '+cur.forms+'.';}
+    else{result.className='rk2-result no';result.textContent='Not quite. '+cur.name+' is '+correct+' ('+cur.sub+'). It '+cur.forms+'.';}
+  });
+  document.getElementById('rockNext').addEventListener('click',newRock);
+  newRock();
+})();
+
+
+/* ============ GLACIER ADVANCE / RETREAT ============ */
+(function(){
+  const stage=document.getElementById('glacStage'); if(!stage) return;
+  function set(s){ stage.classList.remove('st-start','st-adv','st-ret'); stage.classList.add(s); }
+  document.getElementById('glacAdvance').addEventListener('click',function(){set('st-adv');});
+  document.getElementById('glacRetreat').addEventListener('click',function(){set('st-ret');});
+  document.getElementById('glacReset').addEventListener('click',function(){set('st-start');});
+})();
+
+/* ============ REVEAL ON SCROLL ============ */
+(function(){
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*60)+'ms';io.observe(el);});
+})();
+</script>
+</body></html>
