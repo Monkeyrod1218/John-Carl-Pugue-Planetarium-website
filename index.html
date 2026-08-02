@@ -203,17 +203,14 @@
   @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
   .note{font-size:.74rem;color:var(--dim);font-style:italic;margin-top:6px}
 
-  #iss{position:fixed;top:0;left:0;z-index:1;width:clamp(340px,44vw,620px);height:auto;pointer-events:none;
-    will-change:transform;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));
-    transform:translate(108vw,84vh) scale(.16) rotate(-6deg);
-    animation:issFly 25s linear infinite}
-  @keyframes issFly{
-    0%{transform:translate(108vw,84vh) scale(.16) rotate(-6deg)}
-    80%{transform:translate(-64vw,-52vh) scale(1.15) rotate(-6deg)}
-    100%{transform:translate(-64vw,-52vh) scale(1.15) rotate(-6deg)}
-  }
-  @media(prefers-reduced-motion:reduce){#iss{display:none}}
+  #station{display:block;width:100%;max-width:780px;height:clamp(260px,40vh,430px);
+    margin:0 auto 6px;background:transparent;--poster-color:transparent;
+    touch-action:pan-y;cursor:grab;
+    filter:drop-shadow(0 22px 44px rgba(0,0,0,.55)) drop-shadow(0 0 34px rgba(120,170,255,.12))}
+  #station:active{cursor:grabbing}
+  #station::part(default-progress-bar){display:none}
 </style>
+<script type="module" src="lib/model-viewer.min.js"></script>
 </head>
 <body>
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -225,7 +222,6 @@
 <div id="minigalwrap"><div id="minitilt"><img id="minigalimg" src="images/minigalimg-caf9409131.png" alt=""></div></div>
 <canvas id="sky" width="1352" height="760"></canvas>
 <div class="scrim"></div>
-<img id="iss" src="images/iss-636e7c4c95.png" alt="International Space Station" aria-hidden="true">
 
 <header>
   <nav class="wrap">
@@ -242,6 +238,13 @@
 <main id="top">
   <!-- HERO -->
   <section class="hero wrap">
+    <model-viewer id="station" class="reveal in" style="transition-delay: 40ms;"
+      src="models/station.glb"
+      alt="Interactive 3D model of an orbital space station with solar wings"
+      camera-controls auto-rotate rotation-per-second="16deg" interaction-prompt="none"
+      disable-zoom disable-pan
+      camera-orbit="40deg 72deg 105%" min-camera-orbit="auto auto 105%" max-camera-orbit="auto auto 105%"
+      field-of-view="30deg" exposure="1.15" shadow-intensity="0" reveal="auto" loading="eager"></model-viewer>
     <h1 class="hero-title reveal in" style="transition-delay: 60ms;"><img class="emblem" src="images/top-f5787754bc.png" alt="John Carl Pogue Planetarium · Grand Prairie ISD seal"><img class="word" src="images/word-3bd677e2c9.png" alt="John Carl Pogue Planetarium"></h1>
     <p class="reveal in" style="transition-delay: 120ms;">The John Carl Pogue Planetarium brings the night sky indoors: full-dome shows, live star talks, and hands-on astronomy for every Grand Prairie student.</p>
   </section>
@@ -309,6 +312,14 @@
 
 <script>
 document.getElementById('yr').textContent=new Date().getFullYear();
+
+/* Respect reduced-motion: stop the 3D station auto-spinning (still draggable) */
+(function(){
+  var s=document.getElementById('station');
+  if(s && window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches){
+    s.removeAttribute('auto-rotate');
+  }
+})();
 
 /* ============ STARFIELD ============ */
 (function(){
