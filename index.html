@@ -203,12 +203,19 @@
   @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
   .note{font-size:.74rem;color:var(--dim);font-style:italic;margin-top:6px}
 
-  #station{display:block;width:100%;max-width:780px;height:clamp(260px,40vh,430px);
-    margin:0 auto 6px;background:transparent;--poster-color:transparent;
-    touch-action:pan-y;cursor:grab;
-    filter:drop-shadow(0 22px 44px rgba(0,0,0,.55)) drop-shadow(0 0 34px rgba(120,170,255,.12))}
-  #station:active{cursor:grabbing}
+  #station{position:fixed;top:0;left:0;z-index:1;pointer-events:none;
+    width:clamp(340px,44vw,620px);height:clamp(340px,44vw,620px);
+    background:transparent;--poster-color:transparent;will-change:transform;
+    filter:drop-shadow(0 14px 34px rgba(0,0,0,.55)) drop-shadow(0 0 30px rgba(120,170,255,.12));
+    transform:translate(108vw,84vh) scale(.16);
+    animation:stationFly 26s linear infinite}
   #station::part(default-progress-bar){display:none}
+  @keyframes stationFly{
+    0%{transform:translate(108vw,84vh) scale(.16)}
+    80%{transform:translate(-64vw,-52vh) scale(1.15)}
+    100%{transform:translate(-64vw,-52vh) scale(1.15)}
+  }
+  @media(prefers-reduced-motion:reduce){#station{animation:none;transform:translate(44vw,12vh) scale(.66)}}
 </style>
 <script type="module" src="lib/model-viewer.min.js"></script>
 </head>
@@ -222,6 +229,13 @@
 <div id="minigalwrap"><div id="minitilt"><img id="minigalimg" src="images/minigalimg-caf9409131.png" alt=""></div></div>
 <canvas id="sky" width="1352" height="760"></canvas>
 <div class="scrim"></div>
+
+<model-viewer id="station"
+  src="models/station.glb"
+  alt="3D model of an orbital space station with solar wings drifting across the sky"
+  auto-rotate rotation-per-second="22deg" interaction-prompt="none"
+  camera-orbit="40deg 74deg 105%" field-of-view="30deg"
+  exposure="1.15" shadow-intensity="0" reveal="auto" loading="eager"></model-viewer>
 
 <header>
   <nav class="wrap">
@@ -238,13 +252,6 @@
 <main id="top">
   <!-- HERO -->
   <section class="hero wrap">
-    <model-viewer id="station" class="reveal in" style="transition-delay: 40ms;"
-      src="models/station.glb"
-      alt="Interactive 3D model of an orbital space station with solar wings"
-      camera-controls auto-rotate rotation-per-second="16deg" interaction-prompt="none"
-      disable-zoom disable-pan
-      camera-orbit="40deg 72deg 105%" min-camera-orbit="auto auto 105%" max-camera-orbit="auto auto 105%"
-      field-of-view="30deg" exposure="1.15" shadow-intensity="0" reveal="auto" loading="eager"></model-viewer>
     <h1 class="hero-title reveal in" style="transition-delay: 60ms;"><img class="emblem" src="images/top-f5787754bc.png" alt="John Carl Pogue Planetarium · Grand Prairie ISD seal"><img class="word" src="images/word-3bd677e2c9.png" alt="John Carl Pogue Planetarium"></h1>
     <p class="reveal in" style="transition-delay: 120ms;">The John Carl Pogue Planetarium brings the night sky indoors: full-dome shows, live star talks, and hands-on astronomy for every Grand Prairie student.</p>
   </section>
