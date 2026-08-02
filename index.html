@@ -203,17 +203,21 @@
   @media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
   .note{font-size:.74rem;color:var(--dim);font-style:italic;margin-top:6px}
 
-  #iss{position:fixed;top:0;left:0;z-index:1;width:clamp(340px,44vw,620px);height:auto;pointer-events:none;
-    will-change:transform;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));
-    transform:translate(108vw,84vh) scale(.16) rotate(-6deg);
-    animation:issFly 25s linear infinite}
-  @keyframes issFly{
-    0%{transform:translate(108vw,84vh) scale(.16) rotate(-6deg)}
-    80%{transform:translate(-64vw,-52vh) scale(1.15) rotate(-6deg)}
-    100%{transform:translate(-64vw,-52vh) scale(1.15) rotate(-6deg)}
+  #station{position:fixed;top:0;left:0;z-index:1;pointer-events:none;
+    width:clamp(340px,44vw,620px);height:clamp(340px,44vw,620px);
+    background:transparent;--poster-color:transparent;will-change:transform;
+    filter:drop-shadow(0 14px 34px rgba(0,0,0,.55)) drop-shadow(0 0 30px rgba(120,170,255,.12));
+    transform:translate(108vw,84vh) scale(.16);
+    animation:stationFly 26s linear infinite}
+  #station::part(default-progress-bar){display:none}
+  @keyframes stationFly{
+    0%{transform:translate(108vw,84vh) scale(.16)}
+    80%{transform:translate(-64vw,-52vh) scale(1.15)}
+    100%{transform:translate(-64vw,-52vh) scale(1.15)}
   }
-  @media(prefers-reduced-motion:reduce){#iss{display:none}}
+  @media(prefers-reduced-motion:reduce){#station{animation:none;transform:translate(44vw,12vh) scale(.66)}}
 </style>
+<script type="module" src="lib/model-viewer.min.js"></script>
 </head>
 <body>
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -225,7 +229,13 @@
 <div id="minigalwrap"><div id="minitilt"><img id="minigalimg" src="images/minigalimg-caf9409131.png" alt=""></div></div>
 <canvas id="sky" width="1352" height="760"></canvas>
 <div class="scrim"></div>
-<img id="iss" src="images/iss-636e7c4c95.png" alt="International Space Station" aria-hidden="true">
+
+<model-viewer id="station"
+  src="models/station.glb"
+  alt="3D model of an orbital space station with solar wings drifting across the sky"
+  auto-rotate rotation-per-second="22deg" interaction-prompt="none"
+  camera-orbit="40deg 74deg 105%" field-of-view="30deg"
+  exposure="1.15" shadow-intensity="0" reveal="auto" loading="eager"></model-viewer>
 
 <header>
   <nav class="wrap">
@@ -309,6 +319,14 @@
 
 <script>
 document.getElementById('yr').textContent=new Date().getFullYear();
+
+/* Respect reduced-motion: stop the 3D station auto-spinning (still draggable) */
+(function(){
+  var s=document.getElementById('station');
+  if(s && window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches){
+    s.removeAttribute('auto-rotate');
+  }
+})();
 
 /* ============ STARFIELD ============ */
 (function(){
