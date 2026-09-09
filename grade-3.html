@@ -194,10 +194,10 @@
   .lesson-head h1 em{font-style:italic;color:var(--gold-soft)}
   .lesson-head p{max-width:60ch;color:var(--mist);margin-top:20px;font-size:clamp(1rem,2vw,1.18rem)}
   .film-panel{background:linear-gradient(160deg,var(--panel),var(--night));border:1px solid var(--line);border-radius:26px;
-    padding:clamp(22px,3vw,40px);display:grid;grid-template-columns:300px 1fr;gap:clamp(24px,4vw,48px);align-items:start;margin-bottom:90px}
-  @media(max-width:760px){.film-panel{grid-template-columns:1fr}}
-  .poster{aspect-ratio:2/3;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.5);position:relative;display:block}
-  .poster img{width:100%;height:100%;object-fit:cover;display:block}
+    padding:clamp(22px,3vw,40px);display:grid;grid-template-columns:380px 1fr;gap:clamp(24px,4vw,48px);align-items:stretch;margin-bottom:90px}
+  @media(max-width:760px){.film-panel{grid-template-columns:1fr}.poster{height:auto;aspect-ratio:2/3;min-height:0}}
+  .poster{height:100%;min-height:460px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.5);position:relative;display:block}
+  .poster img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
   .poster-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:18px;
     background:radial-gradient(120% 90% at 50% 8%,#2c1c6e 0%,#161f54 45%,#0a1030 100%)}
   .poster-ph .pp-title{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(1.8rem,4vw,2.4rem);line-height:1;color:#8be04f;
